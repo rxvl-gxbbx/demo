@@ -1,10 +1,8 @@
 package com.example.demo.diff.tracker;
 
 import com.example.demo.diff.extractor.FieldPathExtractor;
-import com.example.demo.util.ReflectionUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.builder.Diff;
 
 import java.lang.reflect.InvocationTargetException;
@@ -23,9 +21,6 @@ public abstract class DiffTracker<T> implements FieldPathExtractor {
 
     private final Class<T> clazz;
 
-    @Setter(value = AccessLevel.PROTECTED)
-    private int fieldsCount;
-
     private final Map<Object, Set<String>> modifiedFieldNames;
 
     private final T defaultInstance;
@@ -34,7 +29,6 @@ public abstract class DiffTracker<T> implements FieldPathExtractor {
         this.clazz = clazz;
         this.diffs = new HashMap<>();
         this.modifiedFieldNames = new HashMap<>();
-        this.fieldsCount = ReflectionUtils.getAllFieldNames(clazz).size();
         this.defaultInstance = clazz.getDeclaredConstructor().newInstance();
     }
 
@@ -46,10 +40,6 @@ public abstract class DiffTracker<T> implements FieldPathExtractor {
                             .map(Diff::getFieldName)
                             .collect(Collectors.toSet())
             );
-
-            if (this.getFieldsCount() == this.getModifiedFieldNames().size()) {
-                break;
-            }
         }
 
         return this.getModifiedFieldNames();
