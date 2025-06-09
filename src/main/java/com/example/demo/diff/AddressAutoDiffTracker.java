@@ -5,12 +5,12 @@ import com.example.demo.dto.AddressAutoLineDto;
 import com.example.demo.dto.AddressAutoRecordDto;
 import com.example.demo.dto.Identifiable;
 import com.example.demo.dto.MyDiffable;
+import org.apache.commons.lang3.builder.Diff;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AddressAutoDiffTracker extends CollectionDiffTracker<AddressAutoLineDto> {
 
@@ -54,6 +54,12 @@ public class AddressAutoDiffTracker extends CollectionDiffTracker<AddressAutoLin
                 })
                 .collect(Collectors.toSet());
 
+        Map<Object, List<Diff<?>>> diffs = new HashMap<>(this.getDiffs());
+        Map<Object, Set<String>> modifiedFieldNames = new HashMap<>(this.getModifiedFieldNames());
+
+        this.getDiffs().clear();
+        this.getModifiedFieldNames().clear();
+
         Set<String> landFieldNames = this.collectFieldNamesById(collectDiffs(currentLandAddresses, previousLandAddresses)).entrySet().stream()
                 .flatMap(it -> {
                     String key = (String) it.getKey();
@@ -72,8 +78,11 @@ public class AddressAutoDiffTracker extends CollectionDiffTracker<AddressAutoLin
                 })
                 .collect(Collectors.toSet());
 
-        buildingFieldNames.addAll(landFieldNames);
+        this.getDiffs().putAll(diffs);
+        this.getModifiedFieldNames().putAll(modifiedFieldNames);
 
-        return buildingFieldNames;
+        return Stream.of(buildingFieldNames, landFieldNames)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 }
